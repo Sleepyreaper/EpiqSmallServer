@@ -1,6 +1,7 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+
   "parameters": {
     "storageType": {
       "type": "string",
@@ -9,6 +10,20 @@
         "Standard_LRS",
         "Premium_LRS"
       ]
+    },
+    "tagName": {
+      "type": "string",
+      "metadata": {
+        "value": "LS",
+        "description": "Name of the tag, such as costCenter"
+      }
+    },
+    "tagValue": {
+      "type": "string",
+      "metadata": {
+        "value": "Cost1234",
+        "description": "Value of the tag, such as headquarter"
+      }
     },
     "vmSmallName": {
       "type": "string",
@@ -82,7 +97,7 @@
       "sku": {
         "name": "[parameters('storageType')]"
       },
-      "dependsOn": [ ],
+      "dependsOn": [],
       "tags": {
         "displayName": "storage"
       },
@@ -93,7 +108,7 @@
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
-      "dependsOn": [ ],
+      "dependsOn": [],
       "tags": {
         "displayName": "vmSmallVnet"
       },
@@ -187,8 +202,9 @@
               "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vmSmallNicName'))]"
             }
           ]
-        }
+        }        
       }
-    }],
+    }
+  ],
   "outputs": {}
 }
