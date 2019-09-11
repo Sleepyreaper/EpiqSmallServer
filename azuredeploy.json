@@ -49,7 +49,6 @@
       "allowedValues": [
         "EastUS",
         "WestUS",
-        "NorthCentralUS",
         "NorthEurope",
         "SouthCentralUS"
       ],
