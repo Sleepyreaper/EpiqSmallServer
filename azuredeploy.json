@@ -29,7 +29,22 @@
         "2012-Datacenter",
         "2012-R2-Datacenter"
       ]
-    }},
+    },
+      "vmSize": {
+        "type": "string",
+        "defaultValue": "Standard_DS2_v2",
+        "allowedValues": [
+          "Standard_DS1_v2",
+          "Standard_DS2_v2",
+          "Standard_DS3_v2",
+          "Standard_DS4_v2",
+          "Standard_A4"
+        ],
+        "metadata": {
+          "description": "VM Size"
+        }
+      }
+    },
   "variables": {
     "storageName": "[concat('storage', uniqueString(resourceGroup().id))]",
     "vmSmallVnetPrefix": "10.0.0.0/16",
@@ -40,11 +55,12 @@
     "vmSmallImagePublisher": "MicrosoftWindowsServer",
     "vmSmallImageOffer": "WindowsServer",
     "vmSmallOSDiskName": "vmSmallOSDisk",
-    "vmSmallVmSize": "Standard_D2_v2",
+    "vmSmallVmSize": "[parameters('vmSize')]",
     "vmSmallVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'vmSmallVnet')]",
     "vmSmallSubnetRef": "[concat(variables('vmSmallVnetID'), '/subnets/', variables('vmSmallVnetSubnet1Name'))]",
     "vmSmallStorageAccountContainerName": "vhds",
-    "vmSmallNicName": "[concat(parameters('vmSmallName'), 'NetworkInterface')]"},
+    "vmSmallNicName": "[concat(parameters('vmSmallName'), 'NetworkInterface')]"
+  },
   "resources": [
     {
       "name": "[variables('storageName')]",
