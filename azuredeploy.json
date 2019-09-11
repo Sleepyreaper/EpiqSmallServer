@@ -1,0 +1,166 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Premium_LRS"
+      ]
+    },
+    "vmSmallName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vmSmallAdminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vmSmallAdminPassword": {
+      "type": "securestring"
+    },
+    "vmSmallWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter"
+      ]
+    }},
+  "variables": {
+    "storageName": "[concat('storage', uniqueString(resourceGroup().id))]",
+    "vmSmallVnetPrefix": "10.0.0.0/16",
+    "vmSmallVnetSubnet1Name": "Subnet-1",
+    "vmSmallVnetSubnet1Prefix": "10.0.0.0/24",
+    "vmSmallVnetSubnet2Name": "Subnet-2",
+    "vmSmallVnetSubnet2Prefix": "10.0.1.0/24",
+    "vmSmallImagePublisher": "MicrosoftWindowsServer",
+    "vmSmallImageOffer": "WindowsServer",
+    "vmSmallOSDiskName": "vmSmallOSDisk",
+    "vmSmallVmSize": "Standard_D2_v2",
+    "vmSmallVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'vmSmallVnet')]",
+    "vmSmallSubnetRef": "[concat(variables('vmSmallVnetID'), '/subnets/', variables('vmSmallVnetSubnet1Name'))]",
+    "vmSmallStorageAccountContainerName": "vhds",
+    "vmSmallNicName": "[concat(parameters('vmSmallName'), 'NetworkInterface')]"},
+  "resources": [
+    {
+      "name": "[variables('storageName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('storageType')]"
+      },
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "storage"
+      },
+      "kind": "Storage"
+    },
+    {
+      "name": "vmSmallVnet",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "vmSmallVnet"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('vmSmallVnetPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('vmSmallVnetSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('vmSmallVnetSubnet1Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('vmSmallVnetSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('vmSmallVnetSubnet2Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('vmSmallNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', 'vmSmallVnet')]"
+      ],
+      "tags": {
+        "displayName": "vmSmallNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('vmSmallSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[parameters('vmSmallName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('vmSmallNicName'))]"
+      ],
+      "tags": {
+        "displayName": "vmSmall"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSmallVmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmSmallName')]",
+          "adminUsername": "[parameters('vmSmallAdminUsername')]",
+          "adminPassword": "[parameters('vmSmallAdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vmSmallImagePublisher')]",
+            "offer": "[variables('vmSmallImageOffer')]",
+            "sku": "[parameters('vmSmallWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "vmSmallOSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2016-01-01').primaryEndpoints.blob, variables('vmSmallStorageAccountContainerName'), '/', variables('vmSmallOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vmSmallNicName'))]"
+            }
+          ]
+        }
+      }
+    }],
+  "outputs": {}
+}
