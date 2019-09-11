@@ -4,8 +4,9 @@
   "parameters": {
     "storageType": {
       "type": "string",
-      "defaultValue": "Standard_LRS",
+      "defaultValue": "StandardSSD_LRS",
       "allowedValues": [
+        "StandardSSD_LRS",
         "Standard_LRS",
         "Premium_LRS"
       ]
@@ -30,21 +31,33 @@
         "2012-R2-Datacenter"
       ]
     },
-      "vmSize": {
-        "type": "string",
-        "defaultValue": "Standard_DS2_v2",
-        "allowedValues": [
-          "Standard_DS1_v2",
-          "Standard_DS2_v2",
-          "Standard_DS3_v2",
-          "Standard_DS4_v2",
-          "Standard_A4"
-        ],
-        "metadata": {
-          "description": "VM Size"
-        }
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_DS3_v2",
+      "allowedValues": [
+        "Standard_DS1_v2",
+        "Standard_DS2_v2",
+        "Standard_DS3_v2",
+        "Standard_DS4_v2"
+      ],
+      "metadata": {
+        "description": "VM Size"
       }
     },
+    "location": {
+      "type": "string",
+      "defaultValue": "EastUS",
+      "allowedValues": [
+        "EastUS",
+        "WestUS",
+        "NorthCentralUS",
+        "SouthCentralUS"
+      ],
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    }
+  },
   "variables": {
     "storageName": "[concat('storage', uniqueString(resourceGroup().id))]",
     "vmSmallVnetPrefix": "10.0.0.0/16",
@@ -65,7 +78,7 @@
     {
       "name": "[variables('storageName')]",
       "type": "Microsoft.Storage/storageAccounts",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "apiVersion": "2016-01-01",
       "sku": {
         "name": "[parameters('storageType')]"
@@ -79,7 +92,7 @@
     {
       "name": "vmSmallVnet",
       "type": "Microsoft.Network/virtualNetworks",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [ ],
       "tags": {
@@ -110,7 +123,7 @@
     {
       "name": "[variables('vmSmallNicName')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "apiVersion": "2016-03-30",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks', 'vmSmallVnet')]"
@@ -135,7 +148,7 @@
     {
       "name": "[parameters('vmSmallName')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "location": "[resourceGroup().location]",
+      "location": "[parameters('location')]",
       "apiVersion": "2015-06-15",
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
